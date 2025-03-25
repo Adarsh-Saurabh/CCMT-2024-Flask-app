@@ -1,0 +1,566 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admissions Data Viewer</title>
+    
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    
+    <!-- Include DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css">
+    
+    <style>
+        /* Base styles */
+        body {
+            font-size: 0.85rem;
+        }
+        .container-fluid {
+            padding: 1rem;
+            max-width: 100%;
+        }
+        h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+        h5 {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Form controls */
+        label {
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .form-control {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+            height: calc(1.5em + 0.5rem + 2px);
+        }
+        
+        /* Filter section */
+        .filter-section {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        /* Table styling */
+        .table {
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
+        .table td, .table th {
+            padding: 0.4rem 0.6rem;
+            vertical-align: middle;
+        }
+        .table-header {
+            background-color: #3070b3;
+            color: white;
+        }
+        
+        /* DataTables specifics */
+        .dataTables_wrapper .dataTables_length, 
+        .dataTables_wrapper .dataTables_filter {
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+        }
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            font-size: 0.8rem;
+            padding-top: 0.5rem;
+            clear: both;
+        }
+        .dataTables_wrapper .dataTables_filter {
+            float: right;
+        }
+        .dataTables_wrapper .dataTables_paginate {
+            float: right;
+        }
+        
+        /* Buttons */
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .btn-toolbar {
+            margin-top: 1.5rem;
+        }
+        
+        /* Score range slider */
+        .range-slider {
+            margin-top: 0.5rem;
+            padding: 0 0.5rem;
+        }
+        .range-values {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+        
+        /* Select2 customization */
+        .select2-container--bootstrap4 .select2-selection--single {
+            height: calc(1.5em + 0.5rem + 2px) !important;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
+            line-height: calc(1.5em + 0.25rem);
+            padding-left: 0;
+        }
+        .select2-container--bootstrap4 .select2-selection--single .select2-selection__arrow {
+            height: calc(1.5em + 0.5rem);
+        }
+        .select2-container--bootstrap4 .select2-results__option {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+        }
+        .select2-container--bootstrap4 .select2-search--dropdown .select2-search__field {
+            font-size: 0.8rem;
+            padding: 0.25rem;
+        }
+        .select2-dropdown {
+            z-index: 9999;
+        }
+        
+        /* Ensure no overlapping */
+        .row {
+            margin-left: -10px;
+            margin-right: -10px;
+        }
+        .row > div {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+        
+        /* Make sure search box doesn't overflow */
+        .dataTables_filter input {
+            max-width: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <h2 class="mb-4">Admissions Data Viewer</h2>
+        
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-2 mb-2">
+                    <label for="round-filter">Round Number</label>
+                    <select id="round-filter" class="form-control">
+                        <option>--- All Round ---</option>
+                        {% for round in round_numbers %}
+                            <option value="{{ round }}">{{ round }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="institute-filter">Institute</label>
+                    <select id="institute-filter" class="form-control select2-searchable">
+                        <option>--- All Institute ---</option>
+                        {% for institute in institutes %}
+                            <option value="{{ institute }}">{{ institute }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="program-filter">Program</label>
+                    <select id="program-filter" class="form-control select2-searchable">
+                        <option>--- All Programs ---</option>
+                        {% for program in programs %}
+                            <option value="{{ program }}">{{ program }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label for="category-filter">Category</label>
+                    <select id="category-filter" class="form-control">
+                        <option>--- All Category ---</option>
+                        {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <label for="group-filter">Group</label>
+                    <select id="group-filter" class="form-control">
+                        <option>--- All Groups ---</option>
+                        {% for group in groups %}
+                            <option value="{{ group }}">{{ group }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Score Range Filter -->
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <label>GATE Score Range</label>
+                    <div class="range-slider">
+                        <input type="range" id="min-score-slider" min="0" max="1000" step="1" value="0" class="form-control-range">
+                        <input type="range" id="max-score-slider" min="0" max="1000" step="1" value="1000" class="form-control-range">
+                        <div class="range-values">
+                            Min: <span id="min-score-value">0</span> - Max: <span id="max-score-value">1000</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label>&nbsp;</label>
+                    <div class="btn-toolbar">
+                        <div class="btn-group mr-2 export-buttons">
+                            <button id="export-csv" class="btn btn-sm btn-outline-secondary">Export CSV</button>
+                            <button id="export-excel" class="btn btn-sm btn-outline-secondary">Export Excel</button>
+                            <button id="export-pdf" class="btn btn-sm btn-outline-secondary">Export PDF</button>
+                        </div>
+                        <div class="btn-group">
+                            <button id="reset-filters" class="btn btn-sm btn-outline-danger">Reset Filters</button>
+                            <button id="toggle-fullscreen" class="btn btn-sm btn-outline-primary">Fullscreen</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Compare Section -->
+            <div class="row mt-2">
+                <div class="col-md-12">
+                    <div class="float-right">
+                        <button id="compare-button" class="btn btn-sm btn-outline-info" disabled>Compare Selected Rows</button>
+                        <button id="clear-selection" class="btn btn-sm btn-outline-secondary" disabled>Clear Selection</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Records Display -->
+        <div class="mb-2">
+            <h5 id="total-records">Total Records Found = {{ total_records }}</h5>
+        </div>
+        
+        <!-- DataTable -->
+        <div class="table-responsive">
+            <table id="admissions-table" class="table table-striped table-bordered">
+                <thead class="table-header">
+                    <tr>
+                        <th class="sortable">Sr.No</th>
+                        <th class="sortable">Round</th>
+                        <th class="sortable">Institute</th>
+                        <th class="sortable">PG Program</th>
+                        <th class="sortable">Group</th>
+                        <th class="sortable">Category</th>
+                        <th class="sortable">Max GATE Score</th>
+                        <th class="sortable">Min GATE Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be loaded by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Include jQuery first, then Bootstrap JS, then DataTables JS and extensions -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/select/1.3.3/js/dataTables.select.min.js"></script>
+    <!-- Include Select2 for searchable dropdowns -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap4-theme@1.0.0/dist/select2-bootstrap4.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for searchable dropdowns
+            $('.select2-searchable').select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                placeholder: 'Search...',
+                allowClear: true
+            });
+            
+            // Initialize DataTable with compact styling
+            var table = $('#admissions-table').DataTable({
+                processing: true,
+                serverSide: true,
+                select: {
+                    style: 'multi',
+                    selector: 'td:first-child'
+                },
+                ajax: {
+                    url: '/data',
+                    data: function(d) {
+                        d.round = $('#round-filter').val();
+                        d.institute = $('#institute-filter').val();
+                        d.program = $('#program-filter').val();
+                        d.category = $('#category-filter').val();
+                        d.group = $('#group-filter').val();
+                        d.minScore = $('#min-score-slider').val();
+                        d.maxScore = $('#max-score-slider').val();
+                        d.search = $('input[type="search"]').val();
+                    }
+                },
+                columns: [
+                    { data: 'sr_no' },
+                    { data: 'Round' },
+                    { data: 'Institute' },
+                    { data: 'PG Program' },
+                    { data: 'Group' },
+                    { data: 'Category' },
+                    { data: 'Max GATE Score' },
+                    { data: 'Min GATE Score' }
+                ],
+                dom: '<"top"fl>rt<"bottom"ip>',
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                pageLength: 25, // Show more rows by default
+                scrollY: '60vh', // Enable vertical scrolling
+                scrollX: true, // Enable horizontal scrolling
+                scrollCollapse: true,
+                language: {
+                    lengthMenu: "Show _MENU_",
+                    info: "_START_-_END_ of _TOTAL_",
+                    search: "Search:",
+                    paginate: {
+                        first: "«",
+                        last: "»",
+                        next: "›",
+                        previous: "‹"
+                    }
+                }
+            });
+            
+            // Handle GATE score range sliders
+            $('#min-score-slider, #max-score-slider').on('input', function() {
+                var minScore = parseInt($('#min-score-slider').val());
+                var maxScore = parseInt($('#max-score-slider').val());
+                
+                // Ensure min doesn't exceed max
+                if (minScore > maxScore) {
+                    if ($(this).attr('id') === 'min-score-slider') {
+                        $('#min-score-slider').val(maxScore);
+                        minScore = maxScore;
+                    } else {
+                        $('#max-score-slider').val(minScore);
+                        maxScore = minScore;
+                    }
+                }
+                
+                // Update displayed values
+                $('#min-score-value').text(minScore);
+                $('#max-score-value').text(maxScore);
+            });
+            
+            // Apply score filters when slider changes are complete
+            $('#min-score-slider, #max-score-slider').on('change', function() {
+                table.ajax.reload();
+                updateTotalRecords();
+            });
+            
+            // Apply filters on change
+            $('#round-filter, #institute-filter, #program-filter, #category-filter, #group-filter').change(function() {
+                table.ajax.reload();
+                updateTotalRecords();
+            });
+            
+            // Column visibility toggle
+            $('#column-visibility').on('change', function() {
+                var selectedColumns = $(this).val();
+                
+                // Hide all columns
+                table.columns().visible(false);
+                
+                // Show selected columns
+                if (selectedColumns) {
+                    for (var i = 0; i < selectedColumns.length; i++) {
+                        table.column(selectedColumns[i]).visible(true);
+                    }
+                }
+            });
+            
+            // Reset filters button
+            $('#reset-filters').click(function() {
+                // Reset all dropdowns
+                $('#round-filter, #institute-filter, #program-filter, #category-filter, #group-filter').val(function() {
+                    return $(this).find('option:first').val();
+                }).trigger('change'); // This is needed for Select2 to update
+                
+                // Reset score sliders
+                $('#min-score-slider').val(0);
+                $('#max-score-slider').val(1000);
+                $('#min-score-value').text(0);
+                $('#max-score-value').text(1000);
+                
+                // Reset column visibility
+                table.columns().visible(true);
+                
+                // Reload table
+                table.ajax.reload();
+                updateTotalRecords();
+            });
+            
+            // Export buttons functionality
+            $('#export-csv').click(function() {
+                window.location.href = '/export?format=csv&' + $.param({
+                    round: $('#round-filter').val(),
+                    institute: $('#institute-filter').val(),
+                    program: $('#program-filter').val(),
+                    category: $('#category-filter').val(),
+                    group: $('#group-filter').val(),
+                    minScore: $('#min-score-slider').val(),
+                    maxScore: $('#max-score-slider').val(),
+                    search: $('input[type="search"]').val()
+                });
+            });
+            
+            $('#export-excel').click(function() {
+                window.location.href = '/export?format=excel&' + $.param({
+                    round: $('#round-filter').val(),
+                    institute: $('#institute-filter').val(),
+                    program: $('#program-filter').val(),
+                    category: $('#category-filter').val(),
+                    group: $('#group-filter').val(),
+                    minScore: $('#min-score-slider').val(),
+                    maxScore: $('#max-score-slider').val(),
+                    search: $('input[type="search"]').val()
+                });
+            });
+            
+            $('#export-pdf').click(function() {
+                window.location.href = '/export?format=pdf&' + $.param({
+                    round: $('#round-filter').val(),
+                    institute: $('#institute-filter').val(),
+                    program: $('#program-filter').val(),
+                    category: $('#category-filter').val(),
+                    group: $('#group-filter').val(),
+                    minScore: $('#min-score-slider').val(),
+                    maxScore: $('#max-score-slider').val(),
+                    search: $('input[type="search"]').val()
+                });
+            });
+            
+            // Fullscreen toggle
+            $('#toggle-fullscreen').click(function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                    $(this).text('Exit Fullscreen');
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                        $(this).text('Fullscreen');
+                    }
+                }
+            });
+            
+            // Handle view mode changes - always use compact view
+            $('.table').addClass('table-sm');
+            
+            // Handle row selection for comparison
+            table.on('select', function() {
+                var selectedCount = table.rows({ selected: true }).count();
+                if (selectedCount > 0) {
+                    $('#compare-button, #clear-selection').prop('disabled', false);
+                }
+            });
+            
+            table.on('deselect', function() {
+                var selectedCount = table.rows({ selected: true }).count();
+                if (selectedCount === 0) {
+                    $('#compare-button, #clear-selection').prop('disabled', true);
+                }
+            });
+            
+            // Compare button
+            $('#compare-button').click(function() {
+                var selectedData = table.rows({ selected: true }).data().toArray();
+                if (selectedData.length > 0) {
+                    // Open modal with comparison
+                    showComparisonModal(selectedData);
+                }
+            });
+            
+            // Clear selection button
+            $('#clear-selection').click(function() {
+                table.rows().deselect();
+            });
+            
+            // Comparison modal
+            function showComparisonModal(data) {
+                // Create modal if it doesn't exist
+                if ($('#comparison-modal').length === 0) {
+                    $('body').append(`
+                        <div class="modal fade" id="comparison-modal" tabindex="-1" role="dialog">
+                            <div class="modal-dialog modal-lg" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Compare Selected Programs</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm" id="comparison-table"></table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+                
+                // Build comparison table
+                var html = '<thead><tr><th>Property</th>';
+                for (var i = 0; i < data.length; i++) {
+                    html += '<th>Program ' + (i+1) + '</th>';
+                }
+                html += '</tr></thead><tbody>';
+                
+                // Add rows for each property
+                var properties = ['Institute', 'PG Program', 'Round', 'Group', 'Category', 'Max GATE Score', 'Min GATE Score'];
+                for (var prop of properties) {
+                    html += '<tr><td>' + prop + '</td>';
+                    for (var i = 0; i < data.length; i++) {
+                        html += '<td>' + data[i][prop] + '</td>';
+                    }
+                    html += '</tr>';
+                }
+                
+                html += '</tbody>';
+                
+                // Update table and show modal
+                $('#comparison-table').html(html);
+                $('#comparison-modal').modal('show');
+            }
+            
+            // Update total records count after filtering
+            function updateTotalRecords() {
+                setTimeout(function() {
+                    $('#total-records').text('Total Records Found = ' + table.page.info().recordsTotal);
+                }, 100);
+            }
+            
+            // Update total records when searching
+            $('input[type="search"]').on('keyup', function() {
+                setTimeout(updateTotalRecords, 100);
+            });
+            
+            // Initial call to make table more compact
+            $('.table').addClass('table-sm');
+        });
+    </script>
+</body>
+</html>
