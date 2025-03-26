@@ -42,8 +42,8 @@ def get_data():
     
     # Get filter parameters
     round_number = request.args.get('round')
-    institute = request.args.get('institute')
-    program = request.args.get('program')
+    institute = request.args.getlist('institute[]')
+    program = request.args.getlist('program[]')
     category = request.args.get('category')
     group = request.args.get('group')
     min_score = request.args.get('minScore')
@@ -53,10 +53,10 @@ def get_data():
     # Apply filters if provided
     if round_number and round_number != '--- All Round ---':
         df = df[df['Round'] == round_number]
-    if institute and institute != '--- All Institute ---':
-        df = df[df['Institute'] == institute]
-    if program and program != '--- All Programs ---':
-        df = df[df['PG Program'] == program]
+    if institute and len(institute) > 0:
+        df = df[df['Institute'].isin(institute)]
+    if program and len(program) > 0:
+        df = df[df['PG Program'].isin(program)]
     if category and category != '--- All Category ---':
         df = df[df['Category'] == category]
     if group and group != '--- All Groups ---':
@@ -119,8 +119,8 @@ def export_data():
     
     # Get filter parameters (same as in get_data)
     round_number = request.args.get('round')
-    institute = request.args.get('institute')
-    program = request.args.get('program')
+    institute = request.args.getlist('institute[]')
+    program = request.args.getlist('program[]')
     category = request.args.get('category')
     group = request.args.get('group')
     min_score = request.args.get('minScore')
@@ -131,10 +131,10 @@ def export_data():
     # Apply filters (reusing same logic as in get_data)
     if round_number and round_number != '--- All Round ---':
         df = df[df['Round'] == round_number]
-    if institute and institute != '--- All Institute ---':
-        df = df[df['Institute'] == institute]
-    if program and program != '--- All Programs ---':
-        df = df[df['PG Program'] == program]
+    if institute and len(institute) > 0:
+        df = df[df['Institute'].isin(institute)]
+    if program and len(program) > 0:
+        df = df[df['PG Program'].isin(program)]
     if category and category != '--- All Category ---':
         df = df[df['Category'] == category]
     if group and group != '--- All Groups ---':

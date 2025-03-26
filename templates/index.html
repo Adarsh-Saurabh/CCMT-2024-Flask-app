@@ -110,6 +110,16 @@
             font-size: 0.8rem;
             padding: 0.25rem 0.5rem;
         }
+        .select2-container--bootstrap4 .select2-selection--multiple {
+            min-height: calc(1.5em + 0.5rem + 2px) !important;
+            font-size: 0.8rem;
+        }
+        .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+            font-size: 0.75rem;
+            padding: 0.1rem 0.4rem;
+            margin-top: 0.2rem;
+            margin-right: 0.2rem;
+        }
         .select2-container--bootstrap4 .select2-selection--single .select2-selection__rendered {
             line-height: calc(1.5em + 0.25rem);
             padding-left: 0;
@@ -163,8 +173,7 @@
                 </div>
                 <div class="col-md-3 mb-2">
                     <label for="institute-filter">Institute</label>
-                    <select id="institute-filter" class="form-control select2-searchable">
-                        <option>--- All Institute ---</option>
+                    <select id="institute-filter" class="form-control select2-searchable" multiple="multiple">
                         {% for institute in institutes %}
                             <option value="{{ institute }}">{{ institute }}</option>
                         {% endfor %}
@@ -172,8 +181,7 @@
                 </div>
                 <div class="col-md-3 mb-2">
                     <label for="program-filter">Program</label>
-                    <select id="program-filter" class="form-control select2-searchable">
-                        <option>--- All Programs ---</option>
+                    <select id="program-filter" class="form-control select2-searchable" multiple="multiple">
                         {% for program in programs %}
                             <option value="{{ program }}">{{ program }}</option>
                         {% endfor %}
@@ -285,12 +293,13 @@
     
     <script>
         $(document).ready(function() {
-            // Initialize Select2 for searchable dropdowns
+            // Initialize Select2 for searchable dropdowns with multiple selection
             $('.select2-searchable').select2({
                 theme: 'bootstrap4',
                 width: '100%',
-                placeholder: 'Search...',
-                allowClear: true
+                placeholder: 'Select one or more...',
+                allowClear: true,
+                closeOnSelect: false
             });
             
             // Initialize DataTable with compact styling
@@ -305,8 +314,8 @@
                     url: '/data',
                     data: function(d) {
                         d.round = $('#round-filter').val();
-                        d.institute = $('#institute-filter').val();
-                        d.program = $('#program-filter').val();
+                        d['institute[]'] = $('#institute-filter').val();
+                        d['program[]'] = $('#program-filter').val();
                         d.category = $('#category-filter').val();
                         d.group = $('#group-filter').val();
                         d.minScore = $('#min-score-slider').val();
@@ -416,40 +425,40 @@
             $('#export-csv').click(function() {
                 window.location.href = '/export?format=csv&' + $.param({
                     round: $('#round-filter').val(),
-                    institute: $('#institute-filter').val(),
-                    program: $('#program-filter').val(),
+                    'institute[]': $('#institute-filter').val(),
+                    'program[]': $('#program-filter').val(),
                     category: $('#category-filter').val(),
                     group: $('#group-filter').val(),
                     minScore: $('#min-score-slider').val(),
                     maxScore: $('#max-score-slider').val(),
                     search: $('input[type="search"]').val()
-                });
+                }, true);
             });
             
             $('#export-excel').click(function() {
                 window.location.href = '/export?format=excel&' + $.param({
                     round: $('#round-filter').val(),
-                    institute: $('#institute-filter').val(),
-                    program: $('#program-filter').val(),
+                    'institute[]': $('#institute-filter').val(),
+                    'program[]': $('#program-filter').val(),
                     category: $('#category-filter').val(),
                     group: $('#group-filter').val(),
                     minScore: $('#min-score-slider').val(),
                     maxScore: $('#max-score-slider').val(),
                     search: $('input[type="search"]').val()
-                });
+                }, true);
             });
             
             $('#export-pdf').click(function() {
                 window.location.href = '/export?format=pdf&' + $.param({
                     round: $('#round-filter').val(),
-                    institute: $('#institute-filter').val(),
-                    program: $('#program-filter').val(),
+                    'institute[]': $('#institute-filter').val(),
+                    'program[]': $('#program-filter').val(),
                     category: $('#category-filter').val(),
                     group: $('#group-filter').val(),
                     minScore: $('#min-score-slider').val(),
                     maxScore: $('#max-score-slider').val(),
                     search: $('input[type="search"]').val()
-                });
+                }, true);
             });
             
             // Fullscreen toggle
